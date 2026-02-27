@@ -16,7 +16,7 @@ namespace FileCollectApp
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new FileCollect());
+            Application.Run(new Form1());
         }
     }
 }
