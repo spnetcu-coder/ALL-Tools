@@ -10,11 +10,15 @@
 
 	<ItemGroup>
 		<None Remove="Armata-Regular.ttf" />
+		<None Remove="product.png" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<EmbeddedResource Include="Armata-Regular.ttf">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</EmbeddedResource>
+		<EmbeddedResource Include="product.png">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</EmbeddedResource>
 	</ItemGroup>
 
