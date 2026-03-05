@@ -9,9 +9,9 @@
         //変数宣言
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
         private System.Windows.Forms.Label titleLabel;
-        private Display_Design productTile1;
-        private Display_Design productTile2;
-        private Display_Design productTile3;
+        private Desplay_Design productPanel1;
+        private Desplay_Design productPanel2;
+        private Desplay_Design productPanel3;
 
         //クローズ時処理(メモリの解放)
         protected override void Dispose(bool disposing)
@@ -23,16 +23,15 @@
 
             base.Dispose(disposing);
         }
-
         #region Windows Form Designer generated code
 
         //画面描画処理
         private void InitializeComponent()
         {
             flowLayoutPanel1 = new FlowLayoutPanel();
-            productTile1 = new Display_Design();
-            productTile3 = new Display_Design();
-            productTile2 = new Display_Design();
+            productPanel1 = new Desplay_Design();
+            productPanel3 = new Desplay_Design();
+            productPanel2 = new Desplay_Design();
             titleLabel = new Label();
 
             flowLayoutPanel1.SuspendLayout();
@@ -49,31 +48,27 @@
             flowLayoutPanel1.TabIndex = 0;
 
             //位置を指定してパネルを追加
-            flowLayoutPanel1.Controls.Add(productTile1);
-            flowLayoutPanel1.Controls.Add(productTile3);
-            flowLayoutPanel1.Controls.Add(productTile2);
+            flowLayoutPanel1.Controls.Add(productPanel1);
+            flowLayoutPanel1.Controls.Add(productPanel3);
+            flowLayoutPanel1.Controls.Add(productPanel2);
 
-            //productTile1(左)
-            productTile1.BackColor = Color.FromArgb(240, 240, 240);
-            productTile1.Location = new Point(15, 15);
-            productTile1.Name = "productTile1";
-            productTile1.Size = new Size(250, 250);
-            productTile1.TabIndex = 0;
-            productTile1.Load += productTile1_Load;
+            productPanel1.BackColor = Color.FromArgb(240, 240, 240);
+            productPanel1.Location = new Point(15, 15);
+            productPanel1.Name = "productPanel1";
+            productPanel1.Size = new Size(250, 250);
+            productPanel1.TabIndex = 0;
 
-            //productTile3(中央)
-            productTile3.BackColor = Color.FromArgb(240, 240, 240);
-            productTile3.Location = new Point(271, 15);
-            productTile3.Name = "productTile3";
-            productTile3.Size = new Size(250, 250);
-            productTile3.TabIndex = 2;
+            productPanel2.BackColor = Color.FromArgb(240, 240, 240);
+            productPanel2.Location = new Point(527, 15);
+            productPanel2.Name = "productPanel2";
+            productPanel2.Size = new Size(250, 250);
+            productPanel2.TabIndex = 1;
 
-            //productTile2(右)
-            productTile2.BackColor = Color.FromArgb(240, 240, 240);
-            productTile2.Location = new Point(527, 15);
-            productTile2.Name = "productTile2";
-            productTile2.Size = new Size(250, 250);
-            productTile2.TabIndex = 1;
+            productPanel3.BackColor = Color.FromArgb(240, 240, 240);
+            productPanel3.Location = new Point(271, 15);
+            productPanel3.Name = "productPanel3";
+            productPanel3.Size = new Size(250, 250);
+            productPanel3.TabIndex = 2;
 
             //ヘッダー部分
             titleLabel.Dock = DockStyle.Top;
@@ -86,7 +81,6 @@
             titleLabel.TabIndex = 1;
             titleLabel.Text = "Product Portal App";
             titleLabel.TextAlign = ContentAlignment.MiddleLeft;
-            titleLabel.Click += titleLabel_Click;
 
             //全体ウィンドウ設定
             AutoScaleDimensions = new SizeF(10F, 25F);
@@ -97,7 +91,7 @@
             Name = "Form1";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Product Portal";
-            Load += Form1_Load;
+            Load += SetFont;
 
             flowLayoutPanel1.ResumeLayout(false);
             ResumeLayout(false);

@@ -4,12 +4,15 @@
     <Compile Update="Display_Program.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Update="Display_Design.cs">
+    <Compile Update="Desplay_Design.cs">
       <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="ConnectionDialog.cs">
+      <SubType>Form</SubType>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Update="Display_Design.resx">
+    <EmbeddedResource Update="Desplay_Design.resx">
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Update="Display_Program.resx">
