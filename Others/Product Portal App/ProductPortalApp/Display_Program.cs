@@ -96,7 +96,7 @@ namespace ProductPortalApp
                     ? Path.GetFileNameWithoutExtension(f)
                     : Path.GetFileName(f);
 
-                var Panel = new Desplay_Design();
+                var Panel = new Display_Design();
                 SetCommonPanel(Panel, displayName, defaultIcon!, f, category);
                 Panel.Tag = "dynamic";
                 flowLayoutPanel1.Controls.Add(Panel);
@@ -104,7 +104,7 @@ namespace ProductPortalApp
         }
 
         //パネルの共通デザインを設定
-        private void SetCommonPanel(Desplay_Design Panel, string displayName, Image defaultIcon, string launchPath, ProductCategory category)
+        private void SetCommonPanel(Display_Design Panel, string displayName, Image defaultIcon, string launchPath, ProductCategory category)
         {
             Panel.DisplayName = displayName;
             Panel.IconImage = defaultIcon;
@@ -115,15 +115,23 @@ namespace ProductPortalApp
             Panel.Padding = new Padding(6);
             Panel.Size = new Size(312, 300);
 
-            //製品ごとにパスを設定
-            Panel.LaunchPath = category switch
+            //製品ごとにパスを設定（取得失敗した場合はパネルを無効化）
+            try
             {
-                ProductCategory.Excellent => LaunchEX(launchPath),
-                ProductCategory.FreeWay => GetFWDir(launchPath),
-                ProductCategory.WebQuery => GetWQDir(launchPath),
-                ProductCategory.DataHarbor => DHLaunchPath(launchPath),
-                _ => launchPath,
-            };
+                Panel.LaunchPath = category switch
+                {
+                    ProductCategory.Excellent => LaunchEX(launchPath),
+                    ProductCategory.FreeWay => GetFWDir(launchPath),
+                    ProductCategory.WebQuery => GetWQDir(launchPath),
+                    ProductCategory.DataHarbor => DHLaunchPath(launchPath),
+                    _ => launchPath,
+                };
+            }
+            catch
+            {
+                Panel.LaunchPath = null;
+                Panel.Enabled = false;
+            }
         }
 
         //1列のパネル数を指定→均等にサイズを調整する
@@ -143,7 +151,7 @@ namespace ProductPortalApp
 
             foreach (Control c in flowLayoutPanel1.Controls)
             {
-                if (c is Desplay_Design)
+                if (c is Display_Design)
                 {
                     c.Width = PanelSize;
                     c.Height = PanelSize;
@@ -172,6 +180,7 @@ namespace ProductPortalApp
                     if (rs != null)
                     {
                         var data = new byte[rs.Length];
+                        rs.ReadExactly(data);
                         var handle = GCHandle.Alloc(data, GCHandleType.Pinned);
                         try
                         {
@@ -195,7 +204,7 @@ namespace ProductPortalApp
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
             //パネルの位置を調整
@@ -305,6 +314,7 @@ namespace ProductPortalApp
                     FileName = target,
                     WorkingDirectory = AppDomain.CurrentDomain.BaseDirectory,
                     UseShellExecute = true,
+                    Verb = "runas",
                 };
                 Process.Start(psi);
             }
@@ -350,7 +360,8 @@ namespace ProductPortalApp
                 {
                     FileName = target,
                     WorkingDirectory = Path.GetDirectoryName(target),
-                    UseShellExecute = true
+                    UseShellExecute = true,
+                    Verb = "runas",
                 });
             }
         }

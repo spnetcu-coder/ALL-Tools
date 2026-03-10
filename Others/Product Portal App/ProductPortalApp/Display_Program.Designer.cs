@@ -9,9 +9,9 @@
         //変数宣言
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
         private System.Windows.Forms.Label titleLabel;
-        private Desplay_Design productPanel1;
-        private Desplay_Design productPanel2;
-        private Desplay_Design productPanel3;
+        private Display_Design productPanel1;
+        private Display_Design productPanel2;
+        private Display_Design productPanel3;
 
         //クローズ時処理(メモリの解放)
         protected override void Dispose(bool disposing)
@@ -29,9 +29,9 @@
         private void InitializeComponent()
         {
             flowLayoutPanel1 = new FlowLayoutPanel();
-            productPanel1 = new Desplay_Design();
-            productPanel3 = new Desplay_Design();
-            productPanel2 = new Desplay_Design();
+            productPanel1 = new Display_Design();
+            productPanel3 = new Display_Design();
+            productPanel2 = new Display_Design();
             titleLabel = new Label();
 
             flowLayoutPanel1.SuspendLayout();

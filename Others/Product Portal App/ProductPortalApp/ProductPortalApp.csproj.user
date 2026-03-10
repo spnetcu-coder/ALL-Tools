@@ -4,7 +4,7 @@
     <Compile Update="Display_Program.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Update="Desplay_Design.cs">
+    <Compile Update="Display_Design.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Update="ConnectionDialog.cs">

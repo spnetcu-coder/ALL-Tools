@@ -16,19 +16,20 @@ namespace ProductPortalApp
         DataHarbor  //DataHarbor関連製品
     }
 
+    //初期表示のパネルデザインを定義
     public class Display_Design : UserControl
     {
-        private PictureBox pictureBoxIcon = null!;
-        private Label labelName = null!;
-        private int cornerRadius = 8;
-        private bool isHovered = false;
-        private Color hoverStart = Color.FromArgb(255, 183, 77);
-        private Color hoverEnd = Color.FromArgb(245, 222, 179);
-        private ProductCategory category = ProductCategory.Default;
-        private Label labelCategory = null!;
-        private Image defaultIcon;
+        private PictureBox picIcon = null!;
+        private Label lLabelName = null!;
+        private int iRadius = Constants.Panel.RADIUSNUM;
+        private bool bHovered = false;
+        private Color cStartColor = Color.FromArgb(255, 183, 77);
+        private Color cEndColor = Color.FromArgb(245, 222, 179);
+        private ProductCategory pCategory = ProductCategory.Default;
+        private Label lLabelCategory = null!;
 
 
+        //製品の起動に使用するパス(実行ファイルのパスやURLなど)を保持
         [Browsable(false)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public string? LaunchPath { get; set; }
@@ -37,43 +38,43 @@ namespace ProductPortalApp
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public Image? IconImage
         {
-            get => pictureBoxIcon.Image;
-            set => pictureBoxIcon.Image = value;
+            get => picIcon.Image;
+            set => picIcon.Image = value;
         }
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public string DisplayName
         {
-            get => labelName.Text;
-            set => labelName.Text = value ?? string.Empty;
+            get => lLabelName.Text;
+            set => lLabelName.Text = value ?? string.Empty;
         }
 
         [Browsable(true)]
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public ProductCategory Category
         {
-            get => category;
+            get => pCategory;
             set
             {
-                category = value;
-                CategoryColors();
+                pCategory = value;
+                SetLabelColor();
             }
         }
 
         public Display_Design()
         {
-            InitializeComponents();
-            //初期カテゴリ(Default)を適用
-            CategoryColors();
+            Init_Controls();
+            SetLabelColor();
         }
 
-        private void InitializeComponents()
+        //表示の初期化
+        private void Init_Controls()
         {
             this.BackColor = Color.FromArgb(240, 240, 240);
             this.Size = new Size(250, 250);
             this.Cursor = Cursors.Hand;
 
-            pictureBoxIcon = new PictureBox
+            picIcon = new PictureBox
             {
                 Size = new Size(64, 64),
                 Location = new Point(12, 12),
@@ -82,7 +83,7 @@ namespace ProductPortalApp
             };
 
             //製品タイトル用
-            labelName = new Label
+            lLabelName = new Label
             {
                 Location = new Point(12, 84),
                 AutoSize = false,
@@ -94,108 +95,108 @@ namespace ProductPortalApp
             };
 
             //カテゴリ表示用
-            labelCategory = new Label
+            lLabelCategory = new Label
             {
                 Location = new Point(10, 10),
                 AutoSize = true,
                 Font = new Font("Yu Gothic UI", 8.5F, FontStyle.Bold),
                 ForeColor = Color.White,
-                BackColor = hoverStart,
+                BackColor = cStartColor,
                 Padding = new Padding(4, 1, 4, 1),
-                Text = GetCategoryText(category),
+                Text = GetCategoryText(pCategory),
             };
 
-            this.Controls.AddRange(new Control[] { pictureBoxIcon, labelName, labelCategory });
-            labelCategory.BringToFront();
+            this.Controls.AddRange(new Control[] { picIcon, lLabelName, lLabelCategory });
+            lLabelCategory.BringToFront();
 
-            labelCategory.SizeChanged += (s, e) =>
+            lLabelCategory.SizeChanged += (s, e) =>
             {
-                MakeRound(labelCategory, 1);
+                MakeRound(lLabelCategory, 1);
             };
 
 
             //画面サイズ変更時テキストの位置を調整
             this.Resize += (s, e) => AdjustLayout();
-            labelName.TextChanged += (s, e) => AdjustLayout();
+            this.Resize += Display_Resize;
+            lLabelName.TextChanged += (s, e) => AdjustLayout();
 
             //初期レイアウト位置
             AdjustLayout();
 
             //パネル内のどこをクリックしても同じ動作になるように設定
-            this.Click += OnClickAll;
+            this.Click += Click_to_Launch;
             foreach (Control c in this.Controls)
             {
-                c.Click += OnClickAll;
+                c.Click += Click_to_Launch;
                 //ホバー状態でも同じ動作になるように設定
-                c.MouseEnter += (s, e) => UpdateHoverState();
-                c.MouseLeave += (s, e) => UpdateHoverState();
+                c.MouseEnter += (s, e) => UpdateHover();
+                c.MouseLeave += (s, e) => UpdateHover();
             }
 
             //ホバー状態を判定
-            this.MouseEnter += (s, e) => UpdateHoverState();
-            this.MouseLeave += (s, e) => UpdateHoverState();
+            this.MouseEnter += (s, e) => UpdateHover();
+            this.MouseLeave += (s, e) => UpdateHover();
         }
 
-        protected override void OnSizeChanged(EventArgs e)
+        private void Display_Resize(object? sender, EventArgs e)
         {
-            base.OnSizeChanged(e);
             //リサイズ時、エリアを更新し再度角丸にする
-            UpdateRegion();
+            Resize_Radius();
             Invalidate();
         }
 
         //操作可能な領域を角丸に設定
-        private void UpdateRegion()
+        private void Resize_Radius()
         {
             var rect = new Rectangle(0, 0, this.Width, this.Height);
-            using var path = GetRoundedRect(rect, cornerRadius);
+            using var path = GetRoundPath(rect, iRadius);
             this.Region?.Dispose();
             this.Region = new Region(path);
         }
 
-        private void CategoryColors()
+        private void SetLabelColor()
         {
-            //ホバー時の背景色を製品カテゴリに応じて変更
-            switch (category)
+            //製品別にラベルの背景色を変更
+            switch (pCategory)
             {
                 case ProductCategory.FreeWay:
-                    hoverStart = Color.FromArgb(255, 195, 95);
-                    hoverEnd = Color.FromArgb(255, 230, 234);
+                    cStartColor = Color.FromArgb(255, 195, 95);
+                    cEndColor = Color.FromArgb(255, 230, 234);
                     this.BackColor = Color.FromArgb(250, 250, 250);
                     break;
                 case ProductCategory.WebQuery:
-                    hoverStart = Color.FromArgb(173, 207, 255);
-                    hoverEnd = Color.FromArgb(132, 245, 255);
+                    cStartColor = Color.FromArgb(173, 207, 255);
+                    cEndColor = Color.FromArgb(132, 245, 255);
                     this.BackColor = Color.FromArgb(250, 250, 250);
                     break;
                 case ProductCategory.Excellent:
-                    hoverStart = Color.FromArgb(203, 243, 154);
-                    hoverEnd = Color.FromArgb(224, 255, 132);
+                    cStartColor = Color.FromArgb(203, 243, 154);
+                    cEndColor = Color.FromArgb(224, 255, 132);
                     this.BackColor = Color.FromArgb(250, 250, 250);
                     break;
                 case ProductCategory.DataHarbor:
-                    hoverStart = Color.FromArgb(204, 153, 255);
-                    hoverEnd = Color.FromArgb(220, 204, 255);
+                    cStartColor = Color.FromArgb(204, 153, 255);
+                    cEndColor = Color.FromArgb(220, 204, 255);
                     this.BackColor = Color.FromArgb(240, 240, 240);
                     break;
             }
             Invalidate();
 
-            labelCategory.Text = GetCategoryText(category);
-            labelCategory.BackColor = hoverStart;
-            labelCategory.BringToFront();
+            lLabelCategory.Text = GetCategoryText(pCategory);
+            lLabelCategory.BackColor = cStartColor;
+            lLabelCategory.BringToFront();
         }
 
         private void SetHover(bool hover)
         {
-            if (isHovered == hover) return;
-            isHovered = hover;
+            if (bHovered == hover) return;
+            bHovered = hover;
             Invalidate();
         }
 
-        private void UpdateHoverState()
+        private void UpdateHover()
         {
-            //Determine if the mouse cursor is currently within this control (including children)
+            //マウスの位置を座標に変換して、パネル内にいるかを判定
             var pt = this.PointToClient(Cursor.Position);
             bool inside = this.ClientRectangle.Contains(pt);
             SetHover(inside);
@@ -206,10 +207,10 @@ namespace ProductPortalApp
         {
             base.OnPaint(e);
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-            using var path = GetRoundedRect(new Rectangle(0, 0, this.Width, this.Height), cornerRadius);
-            if (isHovered)
+            using var path = GetRoundPath(new Rectangle(0, 0, this.Width, this.Height), iRadius);
+            if (bHovered)
             {
-                using var brush = new LinearGradientBrush(this.ClientRectangle, hoverStart, hoverEnd, 45f);
+                using var brush = new LinearGradientBrush(this.ClientRectangle, cStartColor, cEndColor, 45f);
                 e.Graphics.FillPath(brush, path);
             }
             else
@@ -246,7 +247,7 @@ namespace ProductPortalApp
             }
         }
 
-        private GraphicsPath GetRoundedRect(Rectangle rect, int radius)
+        private GraphicsPath GetRoundPath(Rectangle rect, int radius)
         {
             var path = new GraphicsPath();
             int d = radius * 2;
@@ -266,38 +267,58 @@ namespace ProductPortalApp
             int padding = 12;
             int availableWidth = Math.Max(10, this.ClientSize.Width - padding * 2);
 
-            //measure label height for word wrap
+            //ラベルの高さをテキストの内容に合わせて調整
             var proposedSize = new Size(availableWidth, int.MaxValue);
-            var textSize = TextRenderer.MeasureText(labelName.Text ?? string.Empty, labelName.Font, proposedSize, TextFormatFlags.WordBreak);
+            var textSize = TextRenderer.MeasureText(lLabelName.Text ?? string.Empty, lLabelName.Font, proposedSize, TextFormatFlags.WordBreak);
             int labelHeight = Math.Min(textSize.Height, this.ClientSize.Height);
 
-            //center total block
-            int totalHeight = pictureBoxIcon.Height + 8 + labelHeight;
+            //アイコンとラベルの高さを計算
+            int totalHeight = picIcon.Height + 8 + labelHeight;
             int top = Math.Max(padding, (this.ClientSize.Height - totalHeight) / 2);
 
-            //position picture centered
-            pictureBoxIcon.Left = (this.ClientSize.Width - pictureBoxIcon.Width) / 2;
-            pictureBoxIcon.Top = top;
+            //要素を中央に配置
+            picIcon.Left = (this.ClientSize.Width - picIcon.Width) / 2;
+            picIcon.Top = top;
 
-            //position label under picture
-            labelName.Width = availableWidth;
-            labelName.Height = labelHeight;
-            labelName.Left = (this.ClientSize.Width - labelName.Width) / 2;
-            labelName.Top = pictureBoxIcon.Bottom + 8;
+            //ラベルの位置とサイズを調整
+            lLabelName.Width = availableWidth;
+            lLabelName.Height = labelHeight;
+            lLabelName.Left = (this.ClientSize.Width - lLabelName.Width) / 2;
+            lLabelName.Top = picIcon.Bottom + 8;
 
             //製品名の文字列折り返し
-            labelName.AutoSize = true;
-            labelName.MaximumSize = new Size(availableWidth, 0);
+            lLabelName.AutoSize = true;
+            lLabelName.MaximumSize = new Size(availableWidth, 0);
         }
 
-        private void OnClickAll(object? sender, EventArgs e)
+        //パネルクリック時の処理(LaunchPathに応じて製品を起動)
+        private void Click_to_Launch(object? sender, EventArgs e)
         {
             if (string.IsNullOrEmpty(LaunchPath))
                 return;
 
             try
             {
-                Process.Start(new ProcessStartInfo { FileName = LaunchPath, UseShellExecute = true });
+                var parent = FindForm() as Display_Program;
+                if (parent != null)
+                {
+                    switch (LaunchPath)
+                    {
+                        case Constants.LaunchSign.SIGNFEM:
+                            parent.LaunchFW(LaunchPath);
+                            return;
+                        case Constants.LaunchSign.SIGNWQMGR:
+                        case Constants.LaunchSign.SIGNWQ:
+                            parent.LaunchWQ(LaunchPath);
+                            return;
+                        case Constants.LaunchSign.SIGNDHMGR:
+                        case Constants.LaunchSign.SIGNDH:
+                            parent.LaunchDH(LaunchPath);
+                            return;
+                    }
+                }
+
+                Process.Start(new ProcessStartInfo { FileName = LaunchPath, UseShellExecute = true, Verb = "runas" });
             }
             catch (Exception ex)
             {
