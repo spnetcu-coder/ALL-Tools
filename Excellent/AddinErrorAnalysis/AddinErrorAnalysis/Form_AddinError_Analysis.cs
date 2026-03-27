@@ -1,5 +1,6 @@
 using System.Drawing.Text;
 using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.Win32;
 
@@ -10,6 +11,7 @@ namespace AddinErrorAnalysis
         public AddinErrorAnalysis()
         {
             InitializeComponent();
+            this.CancelButton = BTN_END;
         }
 
         // 「分析開始」ボタン
@@ -23,38 +25,46 @@ namespace AddinErrorAnalysis
             {
                 // Excelのアドインファイルのパスをレジストリから取得
                 strAddinPath = GetXllAddinPath();
-                
+
                 // アドインファイルパスが取得できない場合はbreak
                 if (strAddinPath == "")
                 {
                     break;
-
                 }
 
                 // Excelのbit数をレジストリから取得
                 iExcelBit = GetExcelBitFromRegistry();
-                if (iExcelBit == -1) {
-                    TXT_RESULT.Text= $"Excelのbit数が取得できませんでした。\r\n" +
+                if (iExcelBit == -1)
+                {
+                    TXT_RESULT.Text = $"Excelのbit数が取得できませんでした。\r\n" +
                         $"Excelのインストール状態を確認してください。";
                     break;
                 }
 
                 // アドインファイルのbit数をPEヘッダから取得
                 iXLLBit = GetXLLBit(strAddinPath);
-                if (iXLLBit == -1) {
-                    TXT_RESULT.Text= $"アドインファイルのbit数が取得できませんでした。\r\n" +
+                if (iXLLBit == -1)
+                {
+                    TXT_RESULT.Text = $"アドインファイルのbit数が取得できませんでした。\r\n" +
                         $"アドインファイルがExcelのbit数に対応しているか確認してください。";
                     break;
                 }
-                
+
                 // ExcelとExcellentのbit数不一致のアドインエラー
-                if(iExcelBit != iXLLBit) {
+                if (iExcelBit != iXLLBit)
+                {
                     string strExcelBit = (iExcelBit == 0) ? "32bit" : "64bit";
                     string strXLLBit = (iXLLBit == 0) ? "32bit" : "64bit";
-                    TXT_RESULT.Text= $"Excelとアドインファイルのbit数が一致していません。\r\n" +
+                    TXT_RESULT.Text = $"Excelとアドインファイルのbit数が一致していません。\r\n" +
                         $"Excelのbit数：{strExcelBit}\r\n" +
                         $"Excellentのbit数：{strXLLBit}\r\n\r\n" +
                         $"Excelと同じbit数のExcellentをインストールしてください。";
+                    break;
+                }
+
+                // トラストセンター関係のアドインエラー
+                if (!CheckAddinOptOfTrustCenter())
+                {
                     break;
                 }
 
@@ -64,17 +74,30 @@ namespace AddinErrorAnalysis
                     break;
                 }
 
-                TXT_RESULT.Text = $"このツールではアドインエラーの原因を判定できません。";
+                // 紅中コイルセンター問い合わせ対応のアドインエラー
+                if (!CheckRegistry())
+                {
+                    break;
+                }
+
+
+                TXT_RESULT.Text = $"このツールではアドインエラーの原因を判定できません。\r\n" +
+                    $"サービスセンターにお問い合わせください。";
 
             } while (false);
 
         }
 
+        // 「終了」ボタン
+        private void BTN_END_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
 
         // Excelのアドインファイル（xlt32.xll）のパスをレジストリから取得する
         private string GetXllAddinPath()
         {
-            string strKeyPath = @"Software\Microsoft\Office\16.0\Excel\Options";
+            string strKeyPath = $@"Software\Microsoft\Office\16.0\Excel\Options";
             string strPath = string.Empty;
 
             RegistryKey? key = Registry.CurrentUser.OpenSubKey(strKeyPath);
@@ -82,8 +105,8 @@ namespace AddinErrorAnalysis
             do
             {
                 if (key == null)
-                {               
-                    TXT_RESULT.Text=$"レジストリが正しく読み取れませんでした。\r\n" +
+                {
+                    TXT_RESULT.Text = $"レジストリが正しく読み取れませんでした。\r\n" +
                         $"レジストリパス：HKEY_CURRENT_USER\\{strKeyPath}\r\n\r\n" +
                         $"Excelのオプション設定を確認してください。";
                     break;
@@ -103,9 +126,17 @@ namespace AddinErrorAnalysis
                     }
                 }
 
-                bool exists = File.Exists(strPath);
-                if (!exists)
+                bool bExists = File.Exists(strPath);
+                if (!bExists)
                 {
+
+                    // 無効なアプリケーションアドインに登録されているか確認
+                    if (!CheckDisabledItems())
+                    {
+                        strPath = string.Empty;
+                        break;
+                    }
+
                     TXT_RESULT.Text = $"アドインファイルが存在しません。\r\n" +
                         $"アドイン参照先パス：{strPath}\r\n\r\n" +
                         $"対象ファイルを配置するか、参照先を変更してください。";
@@ -117,7 +148,7 @@ namespace AddinErrorAnalysis
         }
 
 
-        
+
         /*Excelのbit数をレジストリから取得する
         　戻り値：0 = 32bit, 
                 　1 = 64bit, 
@@ -168,36 +199,69 @@ namespace AddinErrorAnalysis
 
                 foreach (var ver in strExVersions)
                 {
-                    strKeyPath = $@"SOFTWARE\Microsoft\Office\{ver}.0\Excel\InstallRoot";
-                    using (RegistryKey? key = Registry.LocalMachine.OpenSubKey(strKeyPath))
+                    strKeyPath = $@"SOFTWARE\Microsoft\Office\{ver}\Excel\InstallRoot";
+
+                    do
                     {
+                        using (RegistryKey? basekey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32))
+                        using (RegistryKey? key = basekey.OpenSubKey(strKeyPath))
+                        {
 
-                        if (key == null)
-                        {
-                            continue;
-                        }
+                            if (key == null)
+                            {
+                                break;
+                            }
 
-                        string? path = key.GetValue("Path")?.ToString();
-                        if ((string.IsNullOrEmpty(path)))
-                        {
-                            continue;
+                            string? path = key.GetValue("Path")?.ToString();
+                            if ((string.IsNullOrEmpty(path)))
+                            {
+                                break;
+                            }
+                            if (path.Contains("Program Files (x86)"))
+                            {
+                                iRet = 0;
+                                break;
+                            }
+                            else if (path.Contains("Program Files"))
+                            {
+                                iRet = 1;
+                                break;
+                            }
+
                         }
-                        if (path.Contains("Program Files (x86)"))
+                    } while (false);
+
+                    do
+                    {
+                        using (RegistryKey? basekey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64))
+                        using (RegistryKey? key = basekey.OpenSubKey(strKeyPath))
                         {
-                            iRet = 0;
+
+                            if (key == null)
+                            {
+                                break;
+                            }
+
+                            string? path = key.GetValue("Path")?.ToString();
+                            if ((string.IsNullOrEmpty(path)))
+                            {
+                                break;
+                            }
+                            if (path.Contains("Program Files (x86)"))
+                            {
+                                iRet = 0;
+                                break;
+                            }
+                            else if (path.Contains("Program Files"))
+                            {
+                                iRet = 1;
+                                break;
+                            }
                         }
-                        else if (path.Contains("Program Files"))
-                        {
-                            iRet = 1;
-                        }
-                        else
-                        {
-                            iRet = -1;
-                        }
-                    }
+                    } while (false);
                 }
-
             } while (false);
+
             return iRet;
         }
 
@@ -220,7 +284,7 @@ namespace AddinErrorAnalysis
 
                 // xllファイルはPE形式の実行ファイルと同様の構造を持つため、PEヘッダを読み取ることでbit数を判断できる
                 using (var fs = new FileStream(strPath, FileMode.Open, FileAccess.Read))
-                using (var br = new BinaryReader(fs)) 
+                using (var br = new BinaryReader(fs))
                 {
 
                     // PEヘッダ位置のオフセットを取得
@@ -251,11 +315,11 @@ namespace AddinErrorAnalysis
 
         }
 
-        /*Excellentのインストールディレクトリが環境変数PATHに含まれているか確認する
-         戻り値：true = 環境変数PATHに含まれている, 
-                 false = 環境変数PATHに含まれていない、またはエラー
+        /*Excellentのインストールディレクトリが環境変数「Path」に含まれているか確認する
+         戻り値：true = 環境変数「Path」に含まれている, 
+                 false = 環境変数「Path」に含まれていない、またはエラー
          */
-        private bool CheckEnvVariables(int iXLLBit) 
+        private bool CheckEnvVariables(int iXLLBit)
         {
             string? strEXDir = string.Empty;
             bool bRet = false;
@@ -271,32 +335,200 @@ namespace AddinErrorAnalysis
                 {
                     strEXDir = Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\SystemConsultant\Excellent\System", "ExcellentDir", null)?.ToString();
                 }
-                if(string.IsNullOrEmpty(strEXDir))
+                if (string.IsNullOrEmpty(strEXDir))
                 {
                     TXT_RESULT.Text = $"Excellentのインストールディレクトリが取得できませんでした。\r\n" +
                         $"Excellentのインストール状態を確認してください。";
                     break;
                 }
 
-                // 環境変数PATHにExcellentのインストールディレクトリが含まれているか確認
-                string? strEnvVars = Environment.GetEnvironmentVariable("PATH");
-                if (string.IsNullOrEmpty(strEnvVars)) 
+                // 環境変数「Path」にExcellentのインストールディレクトリが含まれているか確認
+                string? strEnvVars = Environment.GetEnvironmentVariable("Path");
+                if (string.IsNullOrEmpty(strEnvVars))
                 {
-                    TXT_RESULT.Text = $"環境変数PATHが取得できませんでした。\r\n" +
-                        $"環境変数PATHを確認してください。";
+                    TXT_RESULT.Text = $"環境変数「Path」が取得できませんでした。\r\n" +
+                        $"環境変数「Path」を確認してください。";
                     break;
                 }
 
                 bool bExisits = strEnvVars.Contains(strEXDir, StringComparison.OrdinalIgnoreCase);
                 if (!bExisits)
                 {
-                    TXT_RESULT.Text = $"環境変数PATHにExcellentのインストールディレクトリが含まれていません。\r\n" +
+                    TXT_RESULT.Text = $"環境変数「Path」にExcellentのインストールディレクトリが含まれていません。\r\n" +
                         $"Excellentのインストールディレクトリ：{strEXDir}\r\n\r\n" +
-                        $"環境変数PATHにExcellentのインストールディレクトリを追加してください。";
+                        $"環境変数「Path」にExcellentのインストールディレクトリを追加してください。\r\n" +
+                        $"１.「コントロールパネル」-「システム」-「システムの詳細設定」をクリック\r\n" +
+                        $"２.「環境変数」ボタンを押下\r\n" +
+                        $"３.「システム環境変数」の「Path」をダブルクリック\r\n" +
+                        $"４.「新規」ボタンを押下後、「{strEXDir}」を追加\r\n" +
+                        $"５. OKボタンで全ての画面を閉じた後、端末を再起動";
                     break;
                 }
 
                 bRet = true;
+
+            } while (false);
+
+            return bRet;
+
+        }
+
+        /* Excelのトラストセンターのアドイン設定を確認する
+         戻り値：true = トラストセンターのアドイン設定にチェックがない, 
+                 false = トラストセンターのアドイン設定のいずれかにチェックがある、またはエラー
+         */
+        private bool CheckAddinOptOfTrustCenter()
+        {
+            bool bRet = false;
+            string[] strExVersions = { "16.0", "15.0", "14.0" };
+            string? strDisableAllAddins = string.Empty; // すべてのアプリケーションアドイン無効
+            string? strNoTBPrompt = string.Empty;       // 署名のないアドインに関する通知を無効
+            string? strRequireSig = string.Empty;       // 署名のないアドイン無効
+
+            foreach (var ver in strExVersions)
+            {
+                string strKeyPath = $@"SOFTWARE\Microsoft\Office\{ver}\Excel\Security";
+                using (RegistryKey? key = Registry.CurrentUser.OpenSubKey(strKeyPath))
+                {
+                    if (key == null)
+                    {
+                        continue;
+                    }
+
+                    strDisableAllAddins = key.GetValue("DisableAllAddins")?.ToString();
+                    strNoTBPrompt = key.GetValue("NoTBPromptUnsignedAddin")?.ToString();
+                    strRequireSig = key.GetValue("RequireAddinSig")?.ToString();
+
+                    if ((string.IsNullOrEmpty(strDisableAllAddins)) || (string.IsNullOrEmpty(strNoTBPrompt)) || (string.IsNullOrEmpty(strRequireSig)))
+                    {
+                        TXT_RESULT.Text = $"Excelのトラストセンター設定の取得に失敗しました。\r\n" +
+                            $"Excelのオプションからトラストセンターのアドイン設定を確認してください。\r\n\r\n" +
+                            $"１. Excelの「ファイル」-「オプション」-「トラストセンター」をクリック\r\n" +
+                            $"２.「トラストセンターの設定」ボタンを押下\r\n" +
+                            $"３.「アドイン」をクリック\r\n" +
+                            $"４. 3つのチェックボックスのいずれか、またはすべてにチェックが入っている場合、全てのチェックを外す\r\n" +
+                            $"５. OKボタンで全ての画面を閉じた後、Excelを再起動";
+
+                        break;
+                    }
+
+                    if (strDisableAllAddins != "0" || strNoTBPrompt != "0" || strRequireSig != "0")
+                    {
+                        TXT_RESULT.Text = $"Excelのトラストセンターの設定にてアドインが無効となる可能性があります。\r\n" +
+                            $"Excelのオプションからトラストセンターのアドイン設定を確認して、チェックを全て外してください。\r\n\r\n" +
+                            $"１. Excelの「ファイル」-「オプション」-「トラストセンター」をクリック\r\n" +
+                            $"２.「トラストセンターの設定」ボタンを押下\r\n" +
+                            $"３.「アドイン」をクリック\r\n" +
+                            $"４. 3つのチェックボックスのいずれか、またはすべてにチェックが入っている場合、全てのチェックを外す\r\n" +
+                            $"５. OKボタンで全ての画面を閉じた後、Excelを再起動";
+                        break;
+                    }
+                    else
+                    {
+                        bRet = true;
+                        break;
+                    }
+                }
+            }
+
+            return bRet;
+
+        }
+
+
+
+        /*「Xlt32.xll」が無効なアプリケーションアドインに登録されているか確認
+         戻り値：true = 無効なアプリケーションアドインに登録されていない, 
+                 false = 無効なアプリケーションアドインに登録されている、またはエラー     
+         */
+        private bool CheckDisabledItems()
+        {
+            bool bRet = true;
+            string[] strExVersions = { "16.0", "15.0", "14.0" };
+            
+            string strPath = string.Empty;
+
+            foreach (var ver in strExVersions)
+            {
+                string strKeyPath = $@"Software\Microsoft\Office\{ver}\Excel\Resiliency\DisabledItems";
+                using (RegistryKey? key = Registry.CurrentUser.OpenSubKey(strKeyPath))
+                {
+                    if(key == null)
+                    {
+                        continue;
+                    }
+
+                    foreach (var name in key.GetValueNames())
+                    {
+                        var data = key.GetValue(name) as byte[];
+                        if (data == null)
+                        {
+                            continue;
+                        }
+                        string text = Encoding.Unicode.GetString(data);
+                        
+                        if(text.Contains("xlt32.xll", StringComparison.OrdinalIgnoreCase))
+                        {
+                            TXT_RESULT.Text = $"Excellentが「無効なアプリケーションアドイン」に含まれている可能性があります。\r\n" +
+                            $"ExcelのオプションからExcellentのアドインを有効にしてください。\r\n\r\n" +
+                            $"１. Excelの「ファイル」-「オプション」-「アドイン」をクリック\r\n" +
+                            $"２.「無効なアプリケーションアドイン」にExcellentが含まれているか確認\r\n" +
+                            $"３. 含まれている場合、管理(A)で\"使用できないアイテム\"を選択して「設定」ボタンを押下\r\n" +
+                            $"４. 使用できるようにするアイテムで「Xlt32(Excellent)」を選択して「有効にする」を押下\r\n" +
+                            $"５. Excelを再起動";
+
+                            bRet = false;
+                        }
+                        break;
+                    }
+                    break;
+                }
+            }
+                return bRet;
+        }
+
+        /*紅中コイルセンター問い合わせ対応
+         対象のレジストリにアドインファイルが登録されていると、アドインが無効になる
+         対象のレジストリにアドインファイルが登録されていないかを確認
+         戻り値：true = レジストリに登録されていない, 
+                 false = レジストリに登録されている、またはエラー     
+         */
+        private bool CheckRegistry()
+        {
+            bool bRet = true;
+            string strKeyPath = $@"Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers";
+
+            do
+            {
+                using (RegistryKey? key = Registry.CurrentUser.OpenSubKey(strKeyPath))
+                {
+                    if (key == null)
+                    {
+                        break;
+                    }
+
+                    foreach (var name in key.GetValueNames())
+                    {
+                        object? value = key.GetValue(name);
+                        if(value == null)
+                        {
+                            continue;
+                        }
+
+                        string? strValue = value.ToString();
+                        if (strValue != null && strValue.Contains("xlt32.xll", StringComparison.OrdinalIgnoreCase))
+                        {
+                            TXT_RESULT.Text = $"下記レジストリによって、アドインが無効となっている可能性があります。\r\n" +
+                            $"下記レジストリの情報を削除してください。\r\n\r\n" +
+                            $"キー：{key}\r\n" +
+                            $"名前：{name}\r\n" +
+                            $"値：{strValue}";
+
+                            bRet = false;
+                        }
+
+                    }
+                }
 
             } while (false);
 
