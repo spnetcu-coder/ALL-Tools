@@ -62,6 +62,18 @@ namespace AddinErrorAnalysis
                     break;
                 }
 
+                // 紅忠コイルセンター問い合わせ対応のアドインエラー
+                if (!CheckRegistry())
+                {
+                    break;
+                }
+
+                // 無効なアプリケーションアドインに登録されているか確認
+                if (!CheckDisabledItems())
+                {
+                    break;
+                }
+
                 // トラストセンター関係のアドインエラー
                 if (!CheckAddinOptOfTrustCenter())
                 {
@@ -73,13 +85,6 @@ namespace AddinErrorAnalysis
                 {
                     break;
                 }
-
-                // 紅中コイルセンター問い合わせ対応のアドインエラー
-                if (!CheckRegistry())
-                {
-                    break;
-                }
-
 
                 TXT_RESULT.Text = $"このツールではアドインエラーの原因を判定できません。\r\n" +
                     $"サービスセンターにお問い合わせください。";
@@ -129,14 +134,6 @@ namespace AddinErrorAnalysis
                 bool bExists = File.Exists(strPath);
                 if (!bExists)
                 {
-
-                    // 無効なアプリケーションアドインに登録されているか確認
-                    if (!CheckDisabledItems())
-                    {
-                        strPath = string.Empty;
-                        break;
-                    }
-
                     TXT_RESULT.Text = $"アドインファイルが存在しません。\r\n" +
                         $"アドイン参照先パス：{strPath}\r\n\r\n" +
                         $"対象ファイルを配置するか、参照先を変更してください。";
@@ -399,20 +396,7 @@ namespace AddinErrorAnalysis
                     strNoTBPrompt = key.GetValue("NoTBPromptUnsignedAddin")?.ToString();
                     strRequireSig = key.GetValue("RequireAddinSig")?.ToString();
 
-                    if ((string.IsNullOrEmpty(strDisableAllAddins)) || (string.IsNullOrEmpty(strNoTBPrompt)) || (string.IsNullOrEmpty(strRequireSig)))
-                    {
-                        TXT_RESULT.Text = $"Excelのトラストセンター設定の取得に失敗しました。\r\n" +
-                            $"Excelのオプションからトラストセンターのアドイン設定を確認してください。\r\n\r\n" +
-                            $"１. Excelの「ファイル」-「オプション」-「トラストセンター」をクリック\r\n" +
-                            $"２.「トラストセンターの設定」ボタンを押下\r\n" +
-                            $"３.「アドイン」をクリック\r\n" +
-                            $"４. 3つのチェックボックスのいずれか、またはすべてにチェックが入っている場合、全てのチェックを外す\r\n" +
-                            $"５. OKボタンで全ての画面を閉じた後、Excelを再起動";
-
-                        break;
-                    }
-
-                    if (strDisableAllAddins != "0" || strNoTBPrompt != "0" || strRequireSig != "0")
+                    if (strDisableAllAddins == "1" || strNoTBPrompt == "1" || strRequireSig == "1")
                     {
                         TXT_RESULT.Text = $"Excelのトラストセンターの設定にてアドインが無効となる可能性があります。\r\n" +
                             $"Excelのオプションからトラストセンターのアドイン設定を確認して、チェックを全て外してください。\r\n\r\n" +
@@ -479,7 +463,6 @@ namespace AddinErrorAnalysis
 
                             bRet = false;
                         }
-                        break;
                     }
                     break;
                 }
@@ -487,7 +470,7 @@ namespace AddinErrorAnalysis
                 return bRet;
         }
 
-        /*紅中コイルセンター問い合わせ対応
+        /*紅忠コイルセンター問い合わせ対応
          対象のレジストリにアドインファイルが登録されていると、アドインが無効になる
          対象のレジストリにアドインファイルが登録されていないかを確認
          戻り値：true = レジストリに登録されていない, 
