@@ -13,9 +13,9 @@ __declspec(dllimport)  char* SnSqlParserGetSQLwithOptions(void* objTree, int nCh
 
 int main(int argc, char** argv) {
 
-	int iMode = atoi(argv[1]);//SQL解析モード、0:固有の識別子、1:アクセス権のあるオブジェクト取得
+	int iMode = 0;//SQL解析モード、0:固有の識別子、1:アクセス権のあるオブジェクト取得
 	int iCharCode = atoi(argv[2]);//文字コード、0:UTF-8、その他:SJIS
-	char cEnclose = 'D';//括り文字 D="",B=[],その他=無し
+	char cEnclose = ' ';//括り文字 D="",B=[],その他=無し
 
 	char szBeforeSQL[12800];
 	memset(szBeforeSQL, '\0', sizeof(szBeforeSQL));
@@ -32,6 +32,27 @@ int main(int argc, char** argv) {
 	char* szOutFileName[50];
 	memset(szOutFileName, '\0', sizeof(szOutFileName));
 	
+	/* コマンドライン引数の取得 */
+	if (argc == 2) {
+		iMode = atoi(argv[1]);
+	}
+	else if (argc == 3) {
+		iMode = atoi(argv[1]);
+		iCharCode = atoi(argv[2]);
+	}else if (argc == 4) {
+		iMode = atoi(argv[1]);
+		iCharCode = atoi(argv[2]);
+		if (argv[3] == 'B') {
+			cEnclose = 'B';
+		}else if (argv[3]=='D'){
+			cEnclose = 'D';
+		}
+	}else if (argc > 4){
+		printf("コマンドライン引数の数が超過しています。\n");
+		return -1;
+	};
+	
+	
 
 	/* モードに応じてSQL解析を実行 */
 	switch (iMode){
@@ -44,6 +65,7 @@ int main(int argc, char** argv) {
 			}
 			fopen_s(&fpInFile, "./TestSql.txt", "r");
 			if (fpInFile == NULL) {
+				flose(fpOutFile);
 				return -1;
 			}
 			while (fgets(szBeforeSQL, sizeof(szBeforeSQL), fpInFile) != NULL) {
@@ -69,6 +91,7 @@ int main(int argc, char** argv) {
 			}
 			fopen_s(&fpInFile, "./TestSql.txt", "r");
 			if (fpInFile == NULL) {
+				flose(fpOutFile);
 				return -1;
 			}
 			while (fgets(szBeforeSQL, sizeof(szBeforeSQL), fpInFile) != NULL) {
@@ -78,6 +101,8 @@ int main(int argc, char** argv) {
 				}
 				iRetCode = szTestParserGetSQLwithOptions(szBeforeSQL, szAfterSQL, sizeof(szAfterSQL), iCharCode, cEnclose, szErrMsg);
 				if (iRetCode != 0) {
+					fclose(fpInFile);
+					fclose(fpOutFile);
 					return -1;
 				}
 				fprintf_s(fpOutFile, "[CASE%d]\nBefore=[%s]\nAfter= [%s]\n\n", i, szBeforeSQL, szAfterSQL);
@@ -98,7 +123,8 @@ int main(int argc, char** argv) {
 /* 固有の識別子 */
 int iTestParserGetObjectsAndAlias(char* szInSql, char* szOutSql, int iSqlSize,int iCharCode, char cEnclose, char* szErrMsg) {
 	void* tree = NULL;
-	BOOL bFlag = FALSE;
+	BOOL bIsSelectSql = FALSE;
+	BOOL bRetCode = FALSE;
 	char* szSql = NULL;
 
 	FwObjectsInformation objects;
@@ -114,14 +140,14 @@ int iTestParserGetObjectsAndAlias(char* szInSql, char* szOutSql, int iSqlSize,in
 		return -1;
 	}
 	/* SELECT文かどうか判別 */
-	bFlag = SnSqlParserIsSelectStmt(tree, szErrMsg);
-	if (bFlag == FALSE) {
+	bIsSelectSql = SnSqlParserIsSelectStmt(tree, szErrMsg);
+	if (bIsSelectSql == FALSE) {
 		return -1;
 	}
 
 	/* オブジェクトと別名を取得 */
-	bFlag = SnSqlParserGetObjectsAndAlias(tree, &objects, &stObjectMaster, display_columns);
-	if (bFlag == FALSE) {
+	bRetCode = SnSqlParserGetObjectsAndAlias(tree, &objects, &stObjectMaster, display_columns);
+	if (bRetCode == FALSE) {
 		return -1;
 	}
 
@@ -135,7 +161,8 @@ int iTestParserGetObjectsAndAlias(char* szInSql, char* szOutSql, int iSqlSize,in
 /* アクセス権のあるオブジェクト取得 */
 int szTestParserGetSQLwithOptions(char* szInSql, char* szOutSql, int iSqlSize,int iCharCode, char cEnclose, char* szErrMsg) {
 	void* tree = NULL;
-	BOOL bFlag = FALSE;
+	BOOL bIsSelectSql = FALSE;
+	BOOL bRetCode = FALSE;
 	char* szSql = NULL;
 
 	FwObjectsInformation objects;
@@ -148,14 +175,14 @@ int szTestParserGetSQLwithOptions(char* szInSql, char* szOutSql, int iSqlSize,in
 		return -1;
 	}
 	/* SELECT文かどうか判別 */
-	bFlag = SnSqlParserIsSelectStmt(tree, szErrMsg);
-	if (bFlag == FALSE) {
+	bIsSelectSql = SnSqlParserIsSelectStmt(tree, szErrMsg);
+	if (bIsSelectSql == FALSE) {
 		return -1;
 	}
 
 	/* オブジェクトを取得 */
-	bFlag = SnSqlParserGetObjects(tree, &objects);
-	if (bFlag == FALSE) {
+	bRetCode = SnSqlParserGetObjects(tree, &objects);
+	if (bRetCode == FALSE) {
 		return -1;
 	}
 	/* SQLを書き換え */
