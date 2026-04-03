@@ -1,0 +1,12 @@
+[CASE1]
+Before=[select clm1 from test;]
+After= [SELECT "clm1" FROM "test"]
+
+[CASE2]
+Before=[select clm1 clm2 from test;]
+After= [SELECT "clm1" "clm2" FROM "test"]
+
+[CASE3]
+Before=[select clm1 from test@schema;]
+After= [SELECT "clm1" FROM "schema"."test"]
+
