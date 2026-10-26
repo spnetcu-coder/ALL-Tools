@@ -1,11 +1,12 @@
-﻿Console.WriteLine("Apache自動初期設定ツール");
+﻿using System;
+using System.IO;
+using System.Collections.Generic;
+Console.WriteLine("Apache自動初期設定ツール");
 
 //httpd.confに追記
 
 //httpd.confを開く
-using System;
-using System.IO;
-using System.Collections.Generic;
+
 string path = "/usr/local/apache2/conf/httpd.conf";
 
 //追記内容(末尾に追加)
@@ -26,3 +27,6 @@ var lines = new List<string>
     "    Options FollowSymLinks",
     "</Directory>"
 };
+
+// ファイルに追記（存在しない場合は作成）
+File.AppendAllLines(path, lines);
