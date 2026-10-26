@@ -1,0 +1,15 @@
+C:\Users\admin\ALL-Tools\WebQuery\ApacheAutoSetup\bin\Debug\net10.0\ApacheAutoSetup.exe
+C:\Users\admin\ALL-Tools\WebQuery\ApacheAutoSetup\bin\Debug\net10.0\ApacheAutoSetup.deps.json
+C:\Users\admin\ALL-Tools\WebQuery\ApacheAutoSetup\bin\Debug\net10.0\ApacheAutoSetup.runtimeconfig.json
+C:\Users\admin\ALL-Tools\WebQuery\ApacheAutoSetup\bin\Debug\net10.0\ApacheAutoSetup.dll
+C:\Users\admin\ALL-Tools\WebQuery\ApacheAutoSetup\bin\Debug\net10.0\ApacheAutoSetup.pdb
+C:\Users\admin\ALL-Tools\WebQuery\ApacheAutoSetup\obj\Debug\net10.0\ApacheAutoSetup.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\admin\ALL-Tools\WebQuery\ApacheAutoSetup\obj\Debug\net10.0\ApacheAutoSetup.AssemblyInfoInputs.cache
+C:\Users\admin\ALL-Tools\WebQuery\ApacheAutoSetup\obj\Debug\net10.0\ApacheAutoSetup.AssemblyInfo.cs
+C:\Users\admin\ALL-Tools\WebQuery\ApacheAutoSetup\obj\Debug\net10.0\ApacheAutoSetup.csproj.CoreCompileInputs.cache
+C:\Users\admin\ALL-Tools\WebQuery\ApacheAutoSetup\obj\Debug\net10.0\ApacheAutoSetup.sourcelink.json
+C:\Users\admin\ALL-Tools\WebQuery\ApacheAutoSetup\obj\Debug\net10.0\ApacheAutoSetup.dll
+C:\Users\admin\ALL-Tools\WebQuery\ApacheAutoSetup\obj\Debug\net10.0\refint\ApacheAutoSetup.dll
+C:\Users\admin\ALL-Tools\WebQuery\ApacheAutoSetup\obj\Debug\net10.0\ApacheAutoSetup.pdb
+C:\Users\admin\ALL-Tools\WebQuery\ApacheAutoSetup\obj\Debug\net10.0\ApacheAutoSetup.genruntimeconfig.cache
+C:\Users\admin\ALL-Tools\WebQuery\ApacheAutoSetup\obj\Debug\net10.0\ref\ApacheAutoSetup.dll
