@@ -1,0 +1,25 @@
+
+{
+	"site_name": "Default Web Site",
+	"virtual_directories": [
+		{
+			"alias": "/sn",
+			"path": "C:\\Program Files\\SystemConsultant\\WebQuery\\cgi-bin"
+		}
+		,
+		{
+			"alias": "/async",
+			"path": "C:\\Program Files\\SystemConsultant\\WebQuery\\async"
+		}
+		,
+		{
+			"alias": "/sn/webquery",
+			"path": "C:\\Program Files\\SystemConsultant\\WebQuery\\webquery"
+		}
+		,
+		{
+			"alias": "/sn/xml",
+			"path": "C:\\Program Files\\SystemConsultant\\WebQuery\\xml"
+		}
+	]
+}
