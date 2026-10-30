@@ -1,0 +1,26 @@
+
+{
+	"site_name": "Default Web Site",
+	"webquery_path": "C:\\Program Files\\SystemConsultant\\WebQuery",
+	"virtual_directories": [
+		{
+			"alias": "/sn",
+			"sn_path": "\\cgi-bin"
+		}
+		,
+		{
+			"alias": "/async",
+			"async_path": "\\async"
+		}
+		,
+		{
+			"alias": "/sn/webquery",
+			"wq_path": "\\webquery"
+		}
+		,
+		{
+			"alias": "/sn/xml",
+			"xml_path": "\\xml"
+		}
+	]
+}
