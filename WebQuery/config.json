@@ -1,25 +1,26 @@
 
 {
 	"site_name": "Default Web Site",
+	"webquery_path": "C:\\Program Files\\SystemConsultant\\WebQuery",
 	"virtual_directories": [
 		{
 			"alias": "/sn",
-			"path": "C:\\Program Files\\SystemConsultant\\WebQuery\\cgi-bin"
+			"sn_path": "\\cgi-bin"
 		}
 		,
 		{
 			"alias": "/async",
-			"path": "C:\\Program Files\\SystemConsultant\\WebQuery\\async"
+			"async_path": "\\async"
 		}
 		,
 		{
 			"alias": "/sn/webquery",
-			"path": "C:\\Program Files\\SystemConsultant\\WebQuery\\webquery"
+			"wq_path": "\\webquery"
 		}
 		,
 		{
 			"alias": "/sn/xml",
-			"path": "C:\\Program Files\\SystemConsultant\\WebQuery\\xml"
+			"xml_path": "\\xml"
 		}
 	]
 }
