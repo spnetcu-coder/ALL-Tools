@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ApacheAutoSetup")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+571a61fb0f23824f848a672a074a283bffd065fd")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e3ba0aadf5f3eaf8a61e229dc62b891809ef79a3")]
 [assembly: System.Reflection.AssemblyProductAttribute("ApacheAutoSetup")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ApacheAutoSetup")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
