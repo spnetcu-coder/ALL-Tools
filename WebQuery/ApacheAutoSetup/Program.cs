@@ -206,7 +206,8 @@ foreach (var setting in mimeSettings)
                 break;
         }
     }
-    // 存在しない場合
+    
+    // 存在しない場合、MIME設定の追加
     else
     {
         mimeLines.Add(setting.Value);
