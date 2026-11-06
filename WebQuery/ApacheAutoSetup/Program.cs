@@ -56,6 +56,7 @@ var settings = new Dictionary<string, string>
     { "Alias /sn/webquery/", $"Alias /sn/webquery/ \"{WebQueryHome}/webquery/\"" },
     { "Alias /async/", $"Alias /async/ \"{WebQueryHome}/async/\"" },
     { "Alias /sn/xml/", $"Alias /sn/xml/ \"{WebQueryHome}/xml/\"" },
+    
     //ScriptAlias の登録
     { "ScriptAlias /sn/", $"ScriptAlias /sn/ \"{WebQueryHome}/cgi-bin/\"" }
 };
@@ -79,6 +80,10 @@ foreach (var setting in settings)
         Console.WriteLine(
            $"エイリアス「{setting.Key}」は既に登録済みです。"
        );
+
+        //正しいコマンドが入力されなかった場合にループで元に戻るようにする。
+        bool isInvalidInput = true;
+        while (isInvalidInput)
         Console.Write("上書きしますか？ (Y=Yes（上書き） / N=No(スキップ) / S=Stop（処理中断）) : ");
 
         string? answer = Console.ReadLine()?.Trim().ToUpper();
@@ -89,11 +94,15 @@ foreach (var setting in settings)
             case "Y":
                 fileLines[Index] = setting.Value;
                 Console.WriteLine("上書きしました。");
+                // 正しい入力なのでループを抜ける
+                isInvalidInput = false; 
                 break;
 
             //スキップ処理
             case "N":
                 Console.WriteLine("登録をスキップしました。");
+                // 正しい入力なのでループを抜ける
+                isInvalidInput = false; 
                 break;
 
             //中断処理
@@ -101,9 +110,9 @@ foreach (var setting in settings)
                 Console.WriteLine("処理を中断します。");
                 return;
 
-            //それ以外の場合はスキップ  
+            //それ以外の場合は再度入力させる。
             default:
-                Console.WriteLine("無効な入力のためスキップしました。");
+                Console.WriteLine("無効な入力です。Y,N,Sのいずれかを入力してください。Y,N,Sは大文字で入力してください。");
                 break;
         }
     }
@@ -182,31 +191,42 @@ foreach (var setting in mimeSettings)
             $"MIME設定「{setting.Key}」は既に登録済みです。"
         );
 
+        //正しいコマンドが入力されなかった場合にループで元に戻るようにする。
+        bool isInvalidInput = true;
+        while (isInvalidInput)
         Console.Write("上書きしますか？ (Y=Yes（上書き） / N=No(スキップ) / S=Stop（処理中断）) : ");
 
         string? answer = Console.ReadLine()?.Trim().ToUpper();
 
         switch (answer)
         {
+             //上書き処理
             case "Y":
                 mimeLines[index] = setting.Value;
                 Console.WriteLine("上書きしました。");
+                // 正しい入力なのでループを抜ける
+                isInvalidInput = false;
                 break;
 
+            //スキップ処理
             case "N":
                 Console.WriteLine("登録をスキップしました。");
+                // 正しい入力なのでループを抜ける
+                isInvalidInput = false; 
                 break;
 
+            //中断処理
             case "S":
                 Console.WriteLine("処理を中断します。");
                 return;
-
+            
+            //それ以外の場合は再度入力させる。
             default:
-                Console.WriteLine("無効な入力のためスキップしました。");
+                Console.WriteLine("無効な入力です。Y,N,Sのいずれかを入力してください。Y,N,Sは大文字で入力してください。");
                 break;
         }
     }
-    
+
     // 存在しない場合、MIME設定の追加
     else
     {
