@@ -64,6 +64,30 @@ var settings = new Dictionary<string, string>
 // httpd.conf読込
 var fileLines = File.ReadAllLines(httpdConfPath).ToList();
 
+//上書き処理の関数
+static string ConfirmOverwrite()
+{
+    while (true)
+    {
+        Console.Write("上書きしますか？ (Y=Yes（上書き） / N=No(スキップ) / S=Stop（処理中断）) : ");
+
+        string? answer = Console.ReadLine()?.Trim().ToUpper();
+
+        switch (answer)
+        {
+            case "Y":
+            case "N":
+            case "S":
+                return answer;
+
+            //無効なコマンドの場合にもう一度入力させる
+            default:
+                Console.WriteLine("無効な入力です。Y,N,Sのいずれかを入力してください。Y,N,Sは大文字で入力してください。");
+                break;
+        }
+    }
+}
+
 foreach (var setting in settings)
 {
     //何行目にあるか探す
@@ -81,41 +105,24 @@ foreach (var setting in settings)
            $"エイリアス「{setting.Key}」は既に登録済みです。"
        );
 
+        //上書き処理関数の実行
         //正しいコマンドが入力されなかった場合にループで元に戻るようにする。
-        bool isInvalidInput = true;
-        while (isInvalidInput)
+        string answer = ConfirmOverwrite();
+
+        switch (answer)
         {
-            Console.Write("上書きしますか？ (Y=Yes（上書き） / N=No(スキップ) / S=Stop（処理中断）) : ");
+            case "Y":
+                fileLines[Index] = setting.Value;
+                Console.WriteLine("上書きしました。");
+                break;
 
-            string? answer = Console.ReadLine()?.Trim().ToUpper();
+            case "N":
+                Console.WriteLine("登録をスキップしました。");
+                break;
 
-            switch (answer)
-            {
-                //上書き処理
-                case "Y":
-                    fileLines[Index] = setting.Value;
-                    Console.WriteLine("上書きしました。");
-                    // 正しい入力なのでループを抜ける
-                    isInvalidInput = false;
-                    break;
-
-                //スキップ処理
-                case "N":
-                    Console.WriteLine("登録をスキップしました。");
-                    // 正しい入力なのでループを抜ける
-                    isInvalidInput = false;
-                    break;
-
-                //中断処理
-                case "S":
-                    Console.WriteLine("処理を中断します。");
-                    return;
-
-                //それ以外の場合は再度入力させる。
-                default:
-                    Console.WriteLine("無効な入力です。Y,N,Sのいずれかを入力してください。Y,N,Sは大文字で入力してください。");
-                    break;
-            }
+            case "S":
+                Console.WriteLine("処理を中断します。");
+                return;
         }
     }
 
@@ -165,6 +172,7 @@ httpdConfText = httpdConfText.Replace(
     "LoadModule cgid_module modules/mod_cgid.so"
 );
 
+//変更内容を保存
 File.WriteAllText(httpdConfPath, httpdConfText);
 
 //MIMEタイプの設定を行う
@@ -193,42 +201,24 @@ foreach (var setting in mimeSettings)
             $"MIME設定「{setting.Key}」は既に登録済みです。"
         );
 
+        //上書き処理関数の実行
         //正しいコマンドが入力されなかった場合にループで元に戻るようにする。
-        bool isInvalidInput = true;
+        string answer = ConfirmOverwrite();
 
-        while (isInvalidInput)
+        switch (answer)
         {
-            Console.Write("上書きしますか？ (Y=Yes（上書き） / N=No(スキップ) / S=Stop（処理中断）) : ");
+            case "Y":
+                fileLines[index] = setting.Value;
+                Console.WriteLine("上書きしました。");
+                break;
 
-            string? answer = Console.ReadLine()?.Trim().ToUpper();
+            case "N":
+                Console.WriteLine("登録をスキップしました。");
+                break;
 
-            switch (answer)
-            {
-                //上書き処理
-                case "Y":
-                    mimeLines[index] = setting.Value;
-                    Console.WriteLine("上書きしました。");
-                    // 正しい入力なのでループを抜ける
-                    isInvalidInput = false;
-                    break;
-
-                //スキップ処理
-                case "N":
-                    Console.WriteLine("登録をスキップしました。");
-                    // 正しい入力なのでループを抜ける
-                    isInvalidInput = false;
-                    break;
-
-                //中断処理
-                case "S":
-                    Console.WriteLine("処理を中断します。");
-                    return;
-
-                //それ以外の場合は再度入力させる。
-                default:
-                    Console.WriteLine("無効な入力です。Y,N,Sのいずれかを入力してください。Y,N,Sは大文字で入力してください。");
-                    break;
-            }
+            case "S":
+                Console.WriteLine("処理を中断します。");
+                return;
         }
     }
 
@@ -239,6 +229,9 @@ foreach (var setting in mimeSettings)
         Console.WriteLine("MIME設定を追加しました。");
     }
 }
+
+// mime.typesへ保存
+File.WriteAllLines(mimeTypesPath, mimeLines);
 
 //正常終了のメッセージ
 Console.WriteLine();
